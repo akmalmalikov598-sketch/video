@@ -349,6 +349,14 @@ def generate():
     os.makedirs(job, exist_ok=True)
 
     try:
+        # 1-bosqich: ovozlar (Playwright ichida asyncio.run ishlamaydi)
+        audios = []
+        for idx, sc in enumerate(scenes):
+            sdir = os.path.join(job, f"s{idx}")
+            os.makedirs(os.path.join(sdir, "frames"), exist_ok=True)
+            audios.append(build_voice(sc["lines"], sdir) if sc["lines"] else None)
+
+        # 2-bosqich: kadrlar va video
         clips = []
         with sync_playwright() as p:
             browser = p.chromium.launch(args=["--no-sandbox", "--disable-gpu"])
@@ -356,9 +364,7 @@ def generate():
             for idx, sc in enumerate(scenes):
                 sdir = os.path.join(job, f"s{idx}")
                 frames = os.path.join(sdir, "frames")
-                os.makedirs(frames, exist_ok=True)
-
-                audio = build_voice(sc["lines"], sdir) if sc["lines"] else None
+                audio = audios[idx]
                 dur = sc["duration"]
                 if audio:
                     # Sahna ovoz tugaguncha davom etadi
